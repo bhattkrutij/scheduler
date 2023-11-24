@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scheduler/screens/schedule_page.dart';
+import 'package:scheduler/utils/string_utils.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -28,7 +29,7 @@ class _LandingPageState extends State<LandingPage> {
                 child: Text(textValue),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             ElevatedButton(
@@ -36,7 +37,7 @@ class _LandingPageState extends State<LandingPage> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SchedulePage(),
+                      builder: (context) => const SchedulePage(),
                     ),
                   );
 
@@ -46,8 +47,9 @@ class _LandingPageState extends State<LandingPage> {
                     });
                   }
                 },
-                child:
-                    Text(textValue.isEmpty ? 'Add Schedule' : 'Edit Schedule'))
+                child: Text(textValue.isEmpty
+                    ? StringUtils.ADD_SCHEDULE
+                    : StringUtils.EDIT_SCHEDULE))
           ],
         ),
       ),

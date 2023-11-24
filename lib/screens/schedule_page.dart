@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:ffi';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scheduler/models/slot.dart';
+import 'package:scheduler/utils/string_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SchedulePage extends StatefulWidget {
@@ -14,22 +13,28 @@ class SchedulePage extends StatefulWidget {
 }
 
 class _SchedulePageState extends State<SchedulePage> {
-  List<String> days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  List<String> days = [
+    StringUtils.SUN,
+    StringUtils.MON,
+    StringUtils.TUE,
+    StringUtils.WED,
+    StringUtils.THU,
+    StringUtils.FRI,
+    StringUtils.SAT
+  ];
   List<String> daysFullName = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thusday',
-    'Friday',
-    'Saturday'
+    StringUtils.SUNDAY,
+    StringUtils.MONDAY,
+    StringUtils.TUESDAY,
+    StringUtils.WEDNESDAY,
+    StringUtils.THURSDAY,
+    StringUtils.FRIDAY,
+    StringUtils.SATURDAY
   ];
   Set<String> selectedDays = Set<String>();
   SharedPreferences? prefs;
   List<Map<String, List<dynamic>>> selectedSlots = [];
-  List<Slot> slotsData = [];
   List<List> slots = List.generate(7, (_) => List.generate(3, (_) => false));
-  List<List> a = [];
   @override
   void initState() {
     // TODO: implement initState
@@ -40,7 +45,7 @@ class _SchedulePageState extends State<SchedulePage> {
   void intiSharedPref() async {
     prefs = await SharedPreferences.getInstance();
     selectedDays = getSelectedDaysPref();
-    slots = getSharedPrefSlots();
+    slots = getPrefSlots();
   }
 
   void setPrefSlots(List<Map<String, List<dynamic>>> data) {
@@ -49,12 +54,11 @@ class _SchedulePageState extends State<SchedulePage> {
     prefs?.setString('data', jsonData);
   }
 
-  List<List> getSharedPrefSlots() {
+  List<List> getPrefSlots() {
     List<List<dynamic>> slots = [];
     String savedJsonString = prefs?.getString('data') ?? "";
     List<dynamic> data = jsonDecode(savedJsonString);
-    List<bool> b = [];
-    List<List> sl = [];
+    List<List> temp = [];
     for (var dayMap in data) {
       print(dayMap);
 
@@ -63,41 +67,13 @@ class _SchedulePageState extends State<SchedulePage> {
         for (int i = 0; i < values.length; i++) {
           b.add(values[i]);
         }
-        sl.add(b);
+        temp.add(b);
       });
     }
-    print("sllll${sl}");
-    slots = sl;
+    print("sllll${temp}");
+    slots = temp;
     setState(() {});
     return slots;
-
-    // if (decodedData is List) {
-    //   List<Map<String, dynamic>> dataList = List.from(decodedData);
-    //   if (dataList is List<Map<String, List<bool>>>) {
-    //     List<Map<String, List<bool>>> data = [];
-    //     for (var item in dataList) {
-    //       if (item is Map<String, dynamic>) {
-    //         Map<String, dynamic> typedItem = item;
-    //         // Now, check if the value associated with the key is a List
-    //         if (typedItem.values.first is List) {
-    //           data.add({
-    //             typedItem.keys.first: List<bool>.from(typedItem.values.first)
-    //           });
-    //         }
-    //       }
-    //     }
-    //     selectedSlots = data;
-    //
-    //     print("selected days============================== ${selectedDays}");
-    //     print("Selectedslot============================== ${selectedSlots}");
-    //     setState(() {});
-    //     return data;
-    //   }
-    //   // Convert each item in the list to Map<String, List<bool>>
-    // } else {
-    //   // Handle the case when the data has an unexpected format
-    //   return [];
-    // }
   }
 
   void setSelectedDaysPref(Set<String> data) {
@@ -114,8 +90,6 @@ class _SchedulePageState extends State<SchedulePage> {
       print("get selected days in days method ${data}");
       return data;
     } else {
-      // Handle the case when the data is not found
-      print("get selected days in days method else");
       return Set<String>();
     }
   }
@@ -126,15 +100,15 @@ class _SchedulePageState extends State<SchedulePage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Container(
-          margin: EdgeInsets.only(left: 20, top: 20),
+          margin: const EdgeInsets.only(left: 20, top: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
-              Text(
-                "Set your Weekly hours",
+              const Text(
+                StringUtils.SET_HRS,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(
@@ -160,6 +134,10 @@ class _SchedulePageState extends State<SchedulePage> {
                                   setState(() {
                                     if (selectedDays.contains(days[index])) {
                                       selectedDays.remove(days[index]);
+                                      slots[index][0] = false;
+                                      slots[index][1] = false;
+                                      slots[index][2] = false;
+                                      setState(() {});
                                     } else {
                                       selectedDays.add(days[index]);
                                     }
@@ -172,36 +150,38 @@ class _SchedulePageState extends State<SchedulePage> {
                                           ? Colors.green
                                           : Colors.grey,
                                   child: Container(
-                                      padding: EdgeInsets.all(2),
-                                      child: Icon(
+                                      padding: const EdgeInsets.all(2),
+                                      child: const Icon(
                                         CupertinoIcons.check_mark,
                                         color: Colors.white,
                                         size: 20,
                                       )),
                                 ),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 20,
                               ),
                               Text(
                                 days[index],
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 16, fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 20,
                               ),
                               selectedDays.contains(days[index])
                                   ? Row(
                                       children: [
-                                        _buildSlotCheckbox(index, 0, 'Morning'),
                                         _buildSlotCheckbox(
-                                            index, 1, 'Afternoon'),
-                                        _buildSlotCheckbox(index, 2, 'Evening'),
+                                            index, 0, StringUtils.MORNING),
+                                        _buildSlotCheckbox(
+                                            index, 1, StringUtils.AFTERNOON),
+                                        _buildSlotCheckbox(
+                                            index, 2, StringUtils.EVENING),
                                       ],
                                     )
-                                  : Text(
-                                      "Unavailable",
+                                  : const Text(
+                                      StringUtils.UNAVAILABLE,
                                       style: TextStyle(
                                           fontWeight: FontWeight.normal,
                                           fontSize: 16),
@@ -209,7 +189,7 @@ class _SchedulePageState extends State<SchedulePage> {
                             ],
                           ),
                         ),
-                        Divider(
+                        const Divider(
                           color: Colors.grey,
                           thickness: 1,
                         )
@@ -218,12 +198,11 @@ class _SchedulePageState extends State<SchedulePage> {
                   },
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               Center(
                 child: ElevatedButton(
-                  child: Text('Save'),
                   style: ElevatedButton.styleFrom(
                     primary: Colors.lightBlue,
                     // side: BorderSide(color: Colors.yellow, width: 5),
@@ -248,7 +227,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
                     print("slots before pref ::${selectedSlots}");
                     setPrefSlots(selectedSlots);
-                    result = "Hi you are available in ";
+                    result = StringUtils.AVIALBLE_TEXT;
                     for (var dayMap in selectedSlots) {
                       print(dayMap);
 
@@ -259,23 +238,25 @@ class _SchedulePageState extends State<SchedulePage> {
                           bool isEvening = false;
                           if (values[0] && values[1] && values[2]) {
                             result += day;
-                            result += " whole day and";
+                            result += StringUtils.WHOLE_DAY;
                             break;
                           } else {
                             if (values[i]) {
                               result += day;
                               if (i == 0) {
-                                result += " Morning, ";
+                                result += StringUtils.MORNING;
                                 isMorning = true;
                               } else if (i == 1) {
-                                result += " Afternoon, ";
+                                result +=
+                                    StringUtils.AFTERNOON + StringUtils.COMMA;
                                 isAfterNoon = true;
                               } else if (i == 2) {
-                                result += " Evening, ";
+                                result +=
+                                    StringUtils.EVENING + StringUtils.COMMA;
                                 isEvening = true;
                               }
                               (values[i] == values.length - 1)
-                                  ? result += "and "
+                                  ? result += StringUtils.AND
                                   : ".";
                             }
                           }
@@ -285,6 +266,7 @@ class _SchedulePageState extends State<SchedulePage> {
                     print(result);
                     Navigator.pop(context, result);
                   },
+                  child: const Text(StringUtils.SAVE),
                 ),
               ),
             ],
