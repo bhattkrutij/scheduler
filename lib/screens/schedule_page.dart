@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:ffi';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:scheduler/models/slot.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
@@ -20,9 +25,101 @@ class _SchedulePageState extends State<SchedulePage> {
     'Saturday'
   ];
   Set<String> selectedDays = Set<String>();
-  List<Map<String, List<bool>>> selectedSlots = [];
-  List<List<bool>> slots =
-      List.generate(7, (_) => List.generate(3, (_) => false));
+  SharedPreferences? prefs;
+  List<Map<String, List<dynamic>>> selectedSlots = [];
+  List<Slot> slotsData = [];
+  List<List> slots = List.generate(7, (_) => List.generate(3, (_) => false));
+  List<List> a = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    intiSharedPref();
+  }
+
+  void intiSharedPref() async {
+    prefs = await SharedPreferences.getInstance();
+    selectedDays = getSelectedDaysPref();
+    slots = getSharedPrefSlots();
+  }
+
+  void setPrefSlots(List<Map<String, List<dynamic>>> data) {
+    String jsonData = jsonEncode(data);
+    print(jsonData);
+    prefs?.setString('data', jsonData);
+  }
+
+  List<List> getSharedPrefSlots() {
+    List<List<dynamic>> slots = [];
+    String savedJsonString = prefs?.getString('data') ?? "";
+    List<dynamic> data = jsonDecode(savedJsonString);
+    List<bool> b = [];
+    List<List> sl = [];
+    for (var dayMap in data) {
+      print(dayMap);
+
+      dayMap.forEach((day, values) {
+        List<bool> b = [];
+        for (int i = 0; i < values.length; i++) {
+          b.add(values[i]);
+        }
+        sl.add(b);
+      });
+    }
+    print("sllll${sl}");
+    slots = sl;
+    setState(() {});
+    return slots;
+
+    // if (decodedData is List) {
+    //   List<Map<String, dynamic>> dataList = List.from(decodedData);
+    //   if (dataList is List<Map<String, List<bool>>>) {
+    //     List<Map<String, List<bool>>> data = [];
+    //     for (var item in dataList) {
+    //       if (item is Map<String, dynamic>) {
+    //         Map<String, dynamic> typedItem = item;
+    //         // Now, check if the value associated with the key is a List
+    //         if (typedItem.values.first is List) {
+    //           data.add({
+    //             typedItem.keys.first: List<bool>.from(typedItem.values.first)
+    //           });
+    //         }
+    //       }
+    //     }
+    //     selectedSlots = data;
+    //
+    //     print("selected days============================== ${selectedDays}");
+    //     print("Selectedslot============================== ${selectedSlots}");
+    //     setState(() {});
+    //     return data;
+    //   }
+    //   // Convert each item in the list to Map<String, List<bool>>
+    // } else {
+    //   // Handle the case when the data has an unexpected format
+    //   return [];
+    // }
+  }
+
+  void setSelectedDaysPref(Set<String> data) {
+    List<String> dataList = data.toList();
+    String jsonData = jsonEncode(dataList);
+    prefs?.setString('selectedDays', jsonData);
+  }
+
+  Set<String> getSelectedDaysPref() {
+    String savedJsonString = prefs?.getString('selectedDays') ?? "";
+    if (savedJsonString.isNotEmpty) {
+      List<dynamic> dataList = jsonDecode(savedJsonString);
+      Set<String> data = Set.from(dataList);
+      print("get selected days in days method ${data}");
+      return data;
+    } else {
+      // Handle the case when the data is not found
+      print("get selected days in days method else");
+      return Set<String>();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -48,6 +145,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   shrinkWrap: true,
                   itemCount: days.length,
                   itemBuilder: (context, index) {
+                    print("selected days in builder${selectedDays}");
                     return Column(
                       children: [
                         Container(
@@ -58,6 +156,7 @@ class _SchedulePageState extends State<SchedulePage> {
                             children: [
                               InkWell(
                                 onTap: () {
+                                  print("selected days ${selectedDays}");
                                   setState(() {
                                     if (selectedDays.contains(days[index])) {
                                       selectedDays.remove(days[index]);
@@ -138,15 +237,17 @@ class _SchedulePageState extends State<SchedulePage> {
                   ),
                   onPressed: () {
                     String result = '';
-                    print(selectedDays);
-
+                    setSelectedDaysPref(selectedDays);
+                    selectedSlots.clear();
                     for (int i = 0; i < days.length; i++) {
-                      Map<String, List<bool>> dayData = {
+                      Map<String, List<dynamic>> dayData = {
                         daysFullName[i]: slots[i]
                       };
                       selectedSlots.add(dayData);
                     }
-                    print(selectedSlots);
+
+                    print("slots before pref ::${selectedSlots}");
+                    setPrefSlots(selectedSlots);
                     result = "Hi you are available in ";
                     for (var dayMap in selectedSlots) {
                       print(dayMap);
@@ -232,15 +333,6 @@ class _SchedulePageState extends State<SchedulePage> {
             ),
           ),
         ),
-        // Checkbox(
-        //   value: slots[dayIndex][slotIndex],
-        //   onChanged: (value) {
-        //     setState(() {
-        //       slots[dayIndex][slotIndex] = value!;
-        //       print(slots);
-        //     });
-        //   },
-        // ),
       ],
     );
   }
