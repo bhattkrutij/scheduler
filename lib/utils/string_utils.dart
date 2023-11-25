@@ -16,12 +16,12 @@ class StringUtils {
   static const String FRIDAY = 'Friday';
   static const String SATURDAY = 'Saturday';
   static const String SET_HRS = 'Set your Weekly hours';
-  static const String MORNING = 'Morning';
-  static const String AFTERNOON = 'Afternoon';
-  static const String EVENING = 'Evening';
+  static const String MORNING = ' Morning ';
+  static const String AFTERNOON = ' Afternoon ';
+  static const String EVENING = ' Evening ';
   static const String UNAVAILABLE = 'Unavailable';
-  static const String AVIALBLE_TEXT = 'Hi you are available in';
-  static const String WHOLE_DAY = ' whole day and';
+  static const String AVIALBLE_TEXT = 'Hi you are available in ';
+  static const String WHOLE_DAY = ' whole day ';
   static const String COMMA = ',';
   static const String AND = 'and';
   static const String SAVE = 'save';

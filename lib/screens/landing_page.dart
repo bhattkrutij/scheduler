@@ -2,6 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scheduler/screens/schedule_page.dart';
 import 'package:scheduler/utils/string_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../utils/prefs_utils.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -11,9 +14,24 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
+  SharedPreferences? prefs;
   String textValue = "";
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    intiSharedPref();
+  }
+
+  void intiSharedPref() async {
+    prefs = await SharedPreferences.getInstance();
+    textValue = getPrefTitle(prefs);
+    print("textvalue ${textValue}");
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print("build called");
     return SafeArea(
         child: Scaffold(
       body: Container(
@@ -26,7 +44,10 @@ class _LandingPageState extends State<LandingPage> {
             Padding(
               padding: const EdgeInsets.all(10),
               child: Center(
-                child: Text(textValue),
+                child: Text(
+                  textValue,
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
             const SizedBox(
@@ -34,16 +55,16 @@ class _LandingPageState extends State<LandingPage> {
             ),
             ElevatedButton(
                 onPressed: () async {
-                  final result = await Navigator.push(
+                  final results = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const SchedulePage(),
                     ),
                   );
 
-                  if (result != null && result is String) {
+                  if (results != null && results is String) {
                     setState(() {
-                      textValue = result;
+                      textValue = results;
                     });
                   }
                 },

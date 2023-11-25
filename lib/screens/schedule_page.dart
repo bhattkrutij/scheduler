@@ -5,6 +5,8 @@ import 'package:scheduler/models/slot.dart';
 import 'package:scheduler/utils/string_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/prefs_utils.dart';
+
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
 
@@ -44,54 +46,9 @@ class _SchedulePageState extends State<SchedulePage> {
 
   void intiSharedPref() async {
     prefs = await SharedPreferences.getInstance();
-    selectedDays = getSelectedDaysPref();
-    slots = getPrefSlots();
-  }
-
-  void setPrefSlots(List<Map<String, List<dynamic>>> data) {
-    String jsonData = jsonEncode(data);
-    print(jsonData);
-    prefs?.setString('data', jsonData);
-  }
-
-  List<List> getPrefSlots() {
-    List<List<dynamic>> slots = [];
-    String savedJsonString = prefs?.getString('data') ?? "";
-    List<dynamic> data = jsonDecode(savedJsonString);
-    List<List> temp = [];
-    for (var dayMap in data) {
-      print(dayMap);
-
-      dayMap.forEach((day, values) {
-        List<bool> b = [];
-        for (int i = 0; i < values.length; i++) {
-          b.add(values[i]);
-        }
-        temp.add(b);
-      });
-    }
-    print("sllll${temp}");
-    slots = temp;
+    selectedDays = getSelectedDaysPref(prefs);
+    slots = getPrefSlots(prefs);
     setState(() {});
-    return slots;
-  }
-
-  void setSelectedDaysPref(Set<String> data) {
-    List<String> dataList = data.toList();
-    String jsonData = jsonEncode(dataList);
-    prefs?.setString('selectedDays', jsonData);
-  }
-
-  Set<String> getSelectedDaysPref() {
-    String savedJsonString = prefs?.getString('selectedDays') ?? "";
-    if (savedJsonString.isNotEmpty) {
-      List<dynamic> dataList = jsonDecode(savedJsonString);
-      Set<String> data = Set.from(dataList);
-      print("get selected days in days method ${data}");
-      return data;
-    } else {
-      return Set<String>();
-    }
   }
 
   @override
@@ -172,11 +129,11 @@ class _SchedulePageState extends State<SchedulePage> {
                               selectedDays.contains(days[index])
                                   ? Row(
                                       children: [
-                                        _buildSlotCheckbox(
+                                        _buildSlotbox(
                                             index, 0, StringUtils.MORNING),
-                                        _buildSlotCheckbox(
+                                        _buildSlotbox(
                                             index, 1, StringUtils.AFTERNOON),
-                                        _buildSlotCheckbox(
+                                        _buildSlotbox(
                                             index, 2, StringUtils.EVENING),
                                       ],
                                     )
@@ -216,7 +173,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   ),
                   onPressed: () {
                     String result = '';
-                    setSelectedDaysPref(selectedDays);
+                    setSelectedDaysPref(prefs, selectedDays);
                     selectedSlots.clear();
                     for (int i = 0; i < days.length; i++) {
                       Map<String, List<dynamic>> dayData = {
@@ -226,7 +183,7 @@ class _SchedulePageState extends State<SchedulePage> {
                     }
 
                     print("slots before pref ::${selectedSlots}");
-                    setPrefSlots(selectedSlots);
+                    setPrefSlots(prefs, selectedSlots);
                     result = StringUtils.AVIALBLE_TEXT;
                     for (var dayMap in selectedSlots) {
                       print(dayMap);
@@ -264,7 +221,8 @@ class _SchedulePageState extends State<SchedulePage> {
                       });
                     }
                     print(result);
-                    Navigator.pop(context, result);
+                    setPrefTitle(prefs, result);
+                    Navigator.pop(context, getPrefTitle(prefs));
                   },
                   child: const Text(StringUtils.SAVE),
                 ),
@@ -276,7 +234,7 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
-  Widget _buildSlotCheckbox(int dayIndex, int slotIndex, String slotName) {
+  Widget _buildSlotbox(int dayIndex, int slotIndex, String slotName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
